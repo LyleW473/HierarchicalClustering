@@ -6,20 +6,17 @@ class HierarchicalClustering:
 
     def start_clustering(self, clusters, points, criterion_type, l1_hashmap, l2_hashmap):
 
-
-        complete = False
-        n_clusters = len(clusters)
-        min_distance = float("inf")
         linkage_criterion = self.select_linkage_criterion(criterion_type)
 
-        while not complete:
+        while len(clusters) > 1:
             
             # Maps (cluster1, cluster2) to the distance between the two clusters, defined by the linkage criterion used
             clusters_distances = {}
+            min_distance = float("inf")
 
-            for i in range(0, n_clusters):
+            for i in range(0, len(clusters)):
                 print("C_DIST", clusters_distances)
-                for j in range(i + 1, n_clusters):
+                for j in range(i + 1, len(clusters)):
 
                     distances_between_cluster_pair = {}
                     # For each point in each of the cluster, find the distance between them
@@ -51,11 +48,14 @@ class HierarchicalClustering:
 
             # Merge all clusters with the minimum distance
             clusters_to_merge = [cluster_pair for cluster_pair in clusters_distances if clusters_distances[cluster_pair] == min_distance]
+            print("B", clusters)
+            print(clusters_to_merge)
+            clusters = self.merge_clusters(clusters = clusters, clusters_to_merge = clusters_to_merge)
             print(clusters_distances)
             print(clusters_to_merge)
             print(min_distance)
+            print(clusters)
             print()
-
 
     def select_linkage_criterion(self, criterion_type):
         return getattr(self, f"{criterion_type}_linkage_criterion")
@@ -65,3 +65,29 @@ class HierarchicalClustering:
 
     def complete_linkage_criterion(self, distances):
         return max(distances, key = distances.get)
+    
+    def merge_clusters(self, clusters, clusters_to_merge):
+        
+        # Find all the clusters that need to be merged
+        cluster_indexes = set()
+        for cluster_pair in clusters_to_merge:
+            cluster_indexes.add(cluster_pair[0])
+            cluster_indexes.add(cluster_pair[1])
+
+        # Select the cluster with the minimum cluster index as the one to move all points to
+        min_cluster_index = min(cluster_indexes)
+        cluster_to_add_points_to = clusters[min_cluster_index]
+        
+        # Add all points from the other clusters to the cluster with the minimum cluster index
+        for cluster_index in cluster_indexes:
+            for point_to_add in clusters[cluster_index].points:
+                cluster_to_add_points_to.add_to_cluster(point_to_add)
+
+        # Return new list of clusters
+        new_clusters = []
+        cluster_indexes.remove(min_cluster_index) # Remove min cluster index (as it is the merged cluster)
+        for k in range(0, len(clusters)):
+            if k not in cluster_indexes:
+                new_clusters.append(clusters[k])
+        
+        return new_clusters
