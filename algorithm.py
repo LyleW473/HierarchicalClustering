@@ -18,7 +18,7 @@ class HierarchicalClustering:
                 print("C_DIST", clusters_distances)
                 for j in range(i + 1, len(clusters)):
 
-                    distances_between_cluster_pair = {}
+                    distances_between_cluster_pair = []
                     # For each point in each of the cluster, find the distance between them
                     for p_i in clusters[i].points:
                         for p_j in clusters[j].points:
@@ -34,12 +34,11 @@ class HierarchicalClustering:
 
                             # Find distance between points
                             distance_between_points = l1_hashmap[(p_i_index, p_j_index)]
-                            distances_between_cluster_pair[j] = distance_between_points
+                            distances_between_cluster_pair.append(distance_between_points)
                     
                     # Select the distance based on the linkage criterion            
-                    selected_index = linkage_criterion(distances_between_cluster_pair)
-                    print(selected_index, distances_between_cluster_pair[selected_index])
-                    selected_distance = distances_between_cluster_pair[selected_index]
+                    selected_distance = linkage_criterion(distances_between_cluster_pair)
+                    print("selected", distances_between_cluster_pair.index(selected_distance), distances_between_cluster_pair)
 
                     # Save the distance between these 2 clusters
                     print("A", distances_between_cluster_pair, selected_distance, (i, j))
@@ -55,16 +54,17 @@ class HierarchicalClustering:
             print(clusters_to_merge)
             print(min_distance)
             print(clusters)
+            print([[(point[0].item(), point[1].item()) for point in cluster.points] for cluster in clusters])
             print()
 
     def select_linkage_criterion(self, criterion_type):
         return getattr(self, f"{criterion_type}_linkage_criterion")
 
     def single_linkage_criterion(self, distances):
-        return min(distances, key = distances.get)
+        return min(distances)
 
     def complete_linkage_criterion(self, distances):
-        return max(distances, key = distances.get)
+        return max(distances)
     
     def merge_clusters(self, clusters, clusters_to_merge):
         
@@ -77,6 +77,7 @@ class HierarchicalClustering:
         # Select the cluster with the minimum cluster index as the one to move all points to
         min_cluster_index = min(cluster_indexes)
         cluster_to_add_points_to = clusters[min_cluster_index]
+        cluster_indexes.remove(min_cluster_index) # Remove min cluster index (as it is the merged cluster)
         
         # Add all points from the other clusters to the cluster with the minimum cluster index
         for cluster_index in cluster_indexes:
@@ -85,7 +86,6 @@ class HierarchicalClustering:
 
         # Return new list of clusters
         new_clusters = []
-        cluster_indexes.remove(min_cluster_index) # Remove min cluster index (as it is the merged cluster)
         for k in range(0, len(clusters)):
             if k not in cluster_indexes:
                 new_clusters.append(clusters[k])

@@ -6,6 +6,8 @@ from algorithm import HierarchicalClustering
 torch.manual_seed(2004)
 K = 3 # Number of clusters
 points = [(9, 4), (0, 1), (9, 0), (1, 8)]
+points = [(-10, 8), (7, -6), (8, -10), (-6, -4), (-8, 6), (2, -4)]
+
 num_points = len(points)
 for i in range(0, num_points):
     points[i] = torch.tensor(points[i])
@@ -46,5 +48,5 @@ hierarchical_clustering_algorithm.start_clustering(
                                                     points = points, 
                                                     l1_hashmap = manhattan_dist_hashmap, 
                                                     l2_hashmap = euclid_dist_hashmap, 
-                                                    criterion_type = "single"
+                                                    criterion_type = "complete"
                                                     )
