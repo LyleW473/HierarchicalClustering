@@ -1,5 +1,7 @@
 import torch
 from functions import calc_l1_norm, calc_l2_norm
+from cluster import Cluster
+
 torch.manual_seed(2004)
 K = 3 # Number of clusters
 points = [(9, 4), (0, 1), (9, 0), (1, 8)]
@@ -27,3 +29,11 @@ for i in range(0, num_points):
         
 print(euclid_dist_hashmap)
 print(manhattan_dist_hashmap)
+
+# Create clusters, one for each point
+clusters = []
+for i, point in enumerate(points):
+    new_cluster = Cluster(cluster_number = i)
+    new_cluster.add_to_cluster(point = point)
+    clusters.append(new_cluster)
+    print(i, new_cluster.points)
