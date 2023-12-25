@@ -1,52 +1,49 @@
 import torch
+from cluster import Cluster
 
 class HierarchicalClustering:
+    
+    def create_dist_hashmap(self, points, norm_number):
 
-    def start_clustering(self, clusters, points, criterion_type, l1_hashmap, l2_hashmap):
+        dist_hashmap = {}
+        num_points = len(points)
+        norm_calc_function = self.select_norm_calc_function(norm_number)
 
-        linkage_criterion = self.select_linkage_criterion(criterion_type)
-
-        while len(clusters) > 1:
+        for i in range(0, num_points):
+            current_point = points[i]
+            for j in range(i + 1, num_points):
+                other_point = points[j]
+                # Find distance between points using the specified norm (L1 or L2 norm)
+                distance_between_points = norm_calc_function(p1 = other_point, p2 = current_point)
+                dist_hashmap[(i, j)] =  distance_between_points
+                dist_hashmap[(j, i)] = distance_between_points
+        
+        return dist_hashmap
             
-            # Maps (cluster1, cluster2) to the distance between the two clusters, defined by the linkage criterion used
-            clusters_distances = {}
-            min_distance = float("inf")
+    def select_norm_calc_function(self, norm_number):
+        return getattr(self, f"calc_l{norm_number}_norm")
 
-            for i in range(0, len(clusters)):
-                for j in range(i + 1, len(clusters)):
+    # L1 Norm - Manhattan distance 
+    def calc_l1_norm(self, p1, p2):
+        return abs(p2[0] - p1[0]) + abs(p2[1] - p1[1])
 
-                    distances_between_cluster_pair = []
-                    # For each point in each of the cluster, find the distance between them
-                    for p_i in clusters[i].points:
-                        for p_j in clusters[j].points:
-                            
-                            # Find index of points to reference hashmap
-                            for x in range(len(points)):
-                                if torch.equal(points[x], p_i):
-                                    p_i_index = x
-                                elif torch.equal(points[x], p_j):
-                                    p_j_index = x
-                            
-                            # Find distance between points
-                            distance_between_points = l1_hashmap[(p_i_index, p_j_index)]
-                            distances_between_cluster_pair.append(distance_between_points)
-                    
-                    # Select the distance based on the linkage criterion            
-                    selected_distance = linkage_criterion(distances_between_cluster_pair)
+    # L2 Norm - Euclidean distance
+    def calc_l2_norm(self, p1, p2):
+        return (((p2[0] - p1[0]) ** 2) + ((p2[1] - p1[1]) ** 2))**0.5
 
-                    # Save the distance between these 2 clusters
-                    clusters_distances[(i, j)] = selected_distance
-                    min_distance = min(min_distance, selected_distance) # Update the minimum distance
+    def create_initial_clusters(self, points):
 
-            # Merge all clusters with the minimum distance
-            clusters_to_merge = [cluster_pair for cluster_pair in clusters_distances if clusters_distances[cluster_pair] == min_distance]
-            clusters = self.merge_clusters(clusters = clusters, clusters_to_merge = clusters_to_merge)
+        # Create clusters, one for each point
+        clusters = []
+        for i, point in enumerate(points):
+            new_cluster = Cluster(cluster_number = i)
+            new_cluster.add_to_cluster(point = point)
+            clusters.append(new_cluster)
+            print(i, new_cluster.points)
+        print()
 
-            # Display information
-            for k, cluster in enumerate(clusters):
-                print(f"Cluster {k}: {[(point[0].item(), point[1].item()) for point in cluster.points]}")
-            print()
-
+        return clusters
+    
     def select_linkage_criterion(self, criterion_type):
         return getattr(self, f"{criterion_type}_linkage_criterion")
 
@@ -79,5 +76,58 @@ class HierarchicalClustering:
         for k in range(0, len(clusters)):
             if k not in cluster_indexes:
                 new_clusters.append(clusters[k])
-        
         return new_clusters
+    
+    def initialise_points(self, points):
+        # Convert points from tuples to tensors
+        num_points = len(points)
+        for i in range(0, num_points):
+            points[i] = torch.tensor(points[i])
+
+    def start_clustering(self, points, criterion_type, norm_number):
+        
+        self.initialise_points(points)
+        dist_hashmap = self.create_dist_hashmap(points, norm_number)
+        linkage_criterion = self.select_linkage_criterion(criterion_type)
+        clusters = self.create_initial_clusters(points)
+
+        while len(clusters) > 1:
+            
+            # Maps (cluster1, cluster2) to the distance between the two clusters, defined by the linkage criterion used
+            clusters_distances = {}
+            min_distance = float("inf")
+
+            for i in range(0, len(clusters)):
+                for j in range(i + 1, len(clusters)):
+
+                    distances_between_cluster_pair = []
+                    # For each point in each of the cluster, find the distance between them
+                    for p_i in clusters[i].points:
+                        for p_j in clusters[j].points:
+                            
+                            # Find index of points to reference hashmap
+                            for x in range(len(points)):
+                                if torch.equal(points[x], p_i):
+                                    p_i_index = x
+                                elif torch.equal(points[x], p_j):
+                                    p_j_index = x
+                            
+                            # Find distance between points
+                            distance_between_points = dist_hashmap[(p_i_index, p_j_index)]
+                            distances_between_cluster_pair.append(distance_between_points)
+                    
+                    # Select the distance based on the linkage criterion            
+                    selected_distance = linkage_criterion(distances_between_cluster_pair)
+
+                    # Save the distance between these 2 clusters
+                    clusters_distances[(i, j)] = selected_distance
+                    min_distance = min(min_distance, selected_distance) # Update the minimum distance
+
+            # Merge all clusters with the minimum distance
+            clusters_to_merge = [cluster_pair for cluster_pair in clusters_distances if clusters_distances[cluster_pair] == min_distance]
+            clusters = self.merge_clusters(clusters = clusters, clusters_to_merge = clusters_to_merge)
+
+            # Display information
+            for k, cluster in enumerate(clusters):
+                print(f"Cluster {k}: {[(point[0].item(), point[1].item()) for point in cluster.points]}")
+            print()
