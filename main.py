@@ -8,6 +8,6 @@ points = [(-10, 8), (7, -6), (8, -10), (-6, -4), (-8, 6), (2, -4)]
 hierarchical_clustering_algorithm = HierarchicalClustering()
 hierarchical_clustering_algorithm.start_clustering(
                                                     points = points, 
-                                                    criterion_type = "complete", # Linkage criterion type
+                                                    criterion_type = "average", # Linkage criterion type
                                                     norm_number = 1, # L1 or L2 norm
                                                     )

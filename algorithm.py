@@ -53,6 +53,9 @@ class HierarchicalClustering:
     def complete_linkage_criterion(self, distances):
         return max(distances)
     
+    def average_linkage_criterion(self, distances):
+        return (1/len(distances)) * sum(distances)
+    
     def merge_clusters(self, clusters, clusters_to_merge):
         
         # Find all the clusters that need to be merged
