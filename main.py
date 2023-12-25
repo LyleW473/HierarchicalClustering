@@ -1,9 +1,29 @@
 import torch
-
+from functions import calc_l1_norm, calc_l2_norm
 torch.manual_seed(2004)
 K = 3 # Number of clusters
 points = [(9, 4), (0, 1), (9, 0), (1, 8)]
-points = set([torch.tensor(point) for point in points])
+num_points = len(points)
+for i in range(0, num_points):
+    points[i] = torch.tensor(points[i])
 
+# Find L1 and L2 norms for each point with every other point
+euclid_dist_hashmap = {}
+manhattan_dist_hashmap = {}
 
-# Find points between each other point
+for i in range(0, num_points):
+    current_point = points[i]
+    for j in range(i + 1, num_points):
+        other_point = points[j]
+
+        distance_between_points_l1 = calc_l1_norm(p1 = other_point, p2 = current_point) # Manhattan distance
+        distance_between_points_l2 = calc_l2_norm(p1 = other_point, p2 = current_point) # Euclidean distance
+
+        manhattan_dist_hashmap[(i, j)] =  distance_between_points_l1
+        manhattan_dist_hashmap[(j, i)] = distance_between_points_l1
+
+        euclid_dist_hashmap[(i, j)] =  distance_between_points_l2
+        euclid_dist_hashmap[(j, i)] = distance_between_points_l2
+        
+print(euclid_dist_hashmap)
+print(manhattan_dist_hashmap)
