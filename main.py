@@ -1,6 +1,7 @@
 import torch
 from functions import calc_l1_norm, calc_l2_norm
 from cluster import Cluster
+from algorithm import HierarchicalClustering
 
 torch.manual_seed(2004)
 K = 3 # Number of clusters
@@ -26,6 +27,7 @@ for i in range(0, num_points):
 
         euclid_dist_hashmap[(i, j)] =  distance_between_points_l2
         euclid_dist_hashmap[(j, i)] = distance_between_points_l2
+        print(current_point, other_point)
         
 print(euclid_dist_hashmap)
 print(manhattan_dist_hashmap)
@@ -37,3 +39,12 @@ for i, point in enumerate(points):
     new_cluster.add_to_cluster(point = point)
     clusters.append(new_cluster)
     print(i, new_cluster.points)
+
+hierarchical_clustering_algorithm = HierarchicalClustering()
+hierarchical_clustering_algorithm.start_clustering(
+                                                    clusters = clusters,
+                                                    points = points, 
+                                                    l1_hashmap = manhattan_dist_hashmap, 
+                                                    l2_hashmap = euclid_dist_hashmap, 
+                                                    criterion_type = "single"
+                                                    )
