@@ -29,10 +29,6 @@ for i in range(0, num_points):
 
         euclid_dist_hashmap[(i, j)] =  distance_between_points_l2
         euclid_dist_hashmap[(j, i)] = distance_between_points_l2
-        print(current_point, other_point)
-        
-print(euclid_dist_hashmap)
-print(manhattan_dist_hashmap)
 
 # Create clusters, one for each point
 clusters = []

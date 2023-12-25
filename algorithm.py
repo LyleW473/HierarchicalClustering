@@ -1,8 +1,6 @@
 import torch
 
 class HierarchicalClustering:
-    def __init__(self):
-        pass
 
     def start_clustering(self, clusters, points, criterion_type, l1_hashmap, l2_hashmap):
 
@@ -15,7 +13,6 @@ class HierarchicalClustering:
             min_distance = float("inf")
 
             for i in range(0, len(clusters)):
-                print("C_DIST", clusters_distances)
                 for j in range(i + 1, len(clusters)):
 
                     distances_between_cluster_pair = []
@@ -29,32 +26,25 @@ class HierarchicalClustering:
                                     p_i_index = x
                                 elif torch.equal(points[x], p_j):
                                     p_j_index = x
-
-                            print(p_i_index, p_j_index, l1_hashmap[(p_i_index, p_j_index)])
-
+                            
                             # Find distance between points
                             distance_between_points = l1_hashmap[(p_i_index, p_j_index)]
                             distances_between_cluster_pair.append(distance_between_points)
                     
                     # Select the distance based on the linkage criterion            
                     selected_distance = linkage_criterion(distances_between_cluster_pair)
-                    print("selected", distances_between_cluster_pair.index(selected_distance), distances_between_cluster_pair)
 
                     # Save the distance between these 2 clusters
-                    print("A", distances_between_cluster_pair, selected_distance, (i, j))
                     clusters_distances[(i, j)] = selected_distance
                     min_distance = min(min_distance, selected_distance) # Update the minimum distance
 
             # Merge all clusters with the minimum distance
             clusters_to_merge = [cluster_pair for cluster_pair in clusters_distances if clusters_distances[cluster_pair] == min_distance]
-            print("B", clusters)
-            print(clusters_to_merge)
             clusters = self.merge_clusters(clusters = clusters, clusters_to_merge = clusters_to_merge)
-            print(clusters_distances)
-            print(clusters_to_merge)
-            print(min_distance)
-            print(clusters)
-            print([[(point[0].item(), point[1].item()) for point in cluster.points] for cluster in clusters])
+
+            # Display information
+            for k, cluster in enumerate(clusters):
+                print(f"Cluster {k}: {[(point[0].item(), point[1].item()) for point in cluster.points]}")
             print()
 
     def select_linkage_criterion(self, criterion_type):
