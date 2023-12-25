@@ -87,7 +87,7 @@ class HierarchicalClustering:
         for i in range(0, num_points):
             points[i] = torch.tensor(points[i])
 
-    def start_clustering(self, points, criterion_type, norm_number):
+    def start_clustering(self, points, criterion_type, norm_number, show_coords):
         
         self.initialise_points(points)
         dist_hashmap = self.create_dist_hashmap(points, norm_number)
@@ -132,5 +132,8 @@ class HierarchicalClustering:
 
             # Display information
             for k, cluster in enumerate(clusters):
-                print(f"Cluster {k}: {[(point[0].item(), point[1].item()) for point in cluster.points]}")
+                if show_coords:
+                    print(f"Cluster {k}: {[(point[0].item(), point[1].item()) for point in cluster.points]}")
+                else:
+                    print(f"Cluster {k}: {[[idx for idx in range(0, len(points)) if torch.equal(points[idx], point)][0] + 1 for point in cluster.points]}")
             print()
