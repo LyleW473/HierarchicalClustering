@@ -34,12 +34,13 @@ class HierarchicalClustering:
     def create_initial_clusters(self, points):
 
         # Create clusters, one for each point
+        print(f"All points: {points}")
         clusters = []
-        for i, point in enumerate(points):
+        for i, _ in enumerate(points):
             new_cluster = Cluster(cluster_number = i)
-            new_cluster.add_to_cluster(point = point)
+            new_cluster.add_to_cluster(point_index = i)
             clusters.append(new_cluster)
-            print(i, new_cluster.points)
+            print(f"Cluster {i + 1}: Point: {[points[idx] for idx in new_cluster.points]} | Point number/index: {new_cluster.points}")
         print()
 
         return clusters
@@ -102,19 +103,11 @@ class HierarchicalClustering:
 
             for i in range(0, len(clusters)):
                 for j in range(i + 1, len(clusters)):
-
                     distances_between_cluster_pair = []
+
                     # For each point in each of the cluster, find the distance between them
-                    for p_i in clusters[i].points:
-                        for p_j in clusters[j].points:
-                            
-                            # Find index of points to reference hashmap
-                            for x in range(len(points)):
-                                if torch.equal(points[x], p_i):
-                                    p_i_index = x
-                                elif torch.equal(points[x], p_j):
-                                    p_j_index = x
-                            
+                    for p_i_index in clusters[i].points:
+                        for p_j_index in clusters[j].points:
                             # Find distance between points
                             distance_between_points = dist_hashmap[(p_i_index, p_j_index)]
                             distances_between_cluster_pair.append(distance_between_points)
@@ -132,8 +125,15 @@ class HierarchicalClustering:
 
             # Display information
             for k, cluster in enumerate(clusters):
-                if show_coords:
-                    print(f"Cluster {k}: {[(point[0].item(), point[1].item()) for point in cluster.points]}")
-                else:
-                    print(f"Cluster {k}: {[[idx for idx in range(0, len(points)) if torch.equal(points[idx], point)][0] + 1 for point in cluster.points]}")
+                
+                points_in_cluster = []
+                for point_index in cluster.points:
+                    
+                    if show_coords:
+                        point = points[point_index]
+                        points_in_cluster.append((point[0].item(), point[1].item()))
+                    else:
+                        points_in_cluster.append(point_index)
+                
+                print(f"Cluster {k + 1}: {points_in_cluster}")
             print()
